@@ -49,7 +49,7 @@ class Test extends StageTest {
         // check content only has one element
         this.checkContentLen = () => {
             const content = document.body.querySelector(this.content);
-            if(content.children.length !== 1) return wrong("The content div should only have one element.");
+            if (content.children.length !== 1) return wrong("The content div should only have one element.");
         };
 
         // check img
@@ -70,7 +70,7 @@ class Test extends StageTest {
         };
 
         // check p
-        this.checkP = () => {
+        this.checkP = (text="Breed not found!") => {
             // check if p exists
             const p = document.body.querySelector("p");
             if (!p) return wrong("The paragraph is not displayed after clicking the button with wrong input.");
@@ -81,9 +81,35 @@ class Test extends StageTest {
                 return wrong("The paragraph should be a child of the element with the selector of #content.");
 
             // check if p has text
-            const pText = "Breed not found!";
-            if (p.innerText !== pText)
+            if (p.innerText !== text)
                 return wrong("The paragraph does not have the correct text.");
+        };
+
+        // check ol
+        this.checkOl = () => {
+            // check if ol exists
+            const ol = document.body.querySelector("ol");
+            if (!ol) return wrong("The ordered list is not displayed after clicking the button.");
+
+            // check if parent is content
+            const olInContent = document.body.querySelector("#content > ol");
+            if (!olInContent)
+                return wrong("The ordered list should be a child of the element with the selector of #content.");
+
+            // check if ol has li
+            const li = document.body.querySelector("ol > li");
+            if (!li) return wrong("The ordered list does not have any list items.");
+
+            // check if li has text
+            if (li.innerText.trim().length === 0)
+                return wrong("The list item does not have any text.");
+        };
+
+        // empty input
+        this.emptyInput = () => {
+            const input = document.body.querySelector("#input-breed");
+            if (!input) return wrong("The input field is missing.");
+            input.value = "";
         };
 
         // CONSTANTS-->
@@ -253,8 +279,109 @@ class Test extends StageTest {
             }));
 
             // check paragraph
-            await  this.page.evaluate(() => {
+            await this.page.evaluate(() => {
                 return this.checkP();
+            });
+
+            // check content only has one element
+            await this.page.evaluate(() => {
+                return this.checkContentLen();
+            });
+
+            return correct();
+        }),
+        this.page.execute(() => {
+            // test #6
+            // check if #button-show-sub-breed exists
+            const buttonShowSubBreed = "#button-show-sub-breed";
+            if (this.elementExists(buttonShowSubBreed)) return wrong(this.missingIdMsg(buttonShowSubBreed));
+
+            // check if its button
+            if (this.elementExists(buttonShowSubBreed, ["button"]))
+                return wrong(this.wrongTagMsg(buttonShowSubBreed, "button"));
+
+            // check if it has text
+            const buttonText = "Show Sub-Breed";
+            if (this.elementHasText(buttonShowSubBreed, buttonText))
+                return wrong(this.wrongTextMsg(buttonShowSubBreed, buttonText));
+
+            return correct();
+        }),
+        this.node.execute(async () => {
+            // test #7
+            await this.page.evaluate(() => {
+                return this.emptyInput();
+            });
+
+            // check button click  click
+            const buttonShowBreed = "#button-show-sub-breed";
+            const button = await this.page.findBySelector(buttonShowBreed);
+            const input = await this.page.findBySelector("#input-breed");
+            const inputText = "BullDog";
+            await input.inputText(inputText);
+
+            const isEventFired = button.waitForEvent('click', 1000);
+            await button.click();
+
+            if (await !isEventFired) return wrong(`Expected click event on button with ${buttonShowBreed} id!`);
+
+            await new Promise((resolve => {
+                setTimeout(() => {
+                    resolve();
+                }, 3000)
+            }));
+
+            // check content only has one element
+            await this.page.evaluate(() => {
+                return this.checkContentLen();
+            });
+
+            // check ol
+            await this.page.evaluate(() => {
+                return this.checkOl();
+            });
+
+            // check if it can handle wrong input
+            const wrongInput = " cute";
+            await input.inputText(wrongInput);
+            await button.click();
+
+            await new Promise((resolve => {
+                    setTimeout(() => {
+                        resolve();
+                    }, 3000)
+                }
+            ));
+
+            // check paragraph
+            await this.page.evaluate(() => {
+                return this.checkP();
+            });
+
+            // check content only has one element
+            await this.page.evaluate(() => {
+                return this.checkContentLen();
+            });
+
+            await this.page.evaluate(() => {
+                return this.emptyInput();
+            });
+
+            // check if it can handle wrong input
+            const noSubInput = "affenpinscher";
+            await input.inputText(noSubInput);
+            await button.click();
+
+            await new Promise((resolve => {
+                    setTimeout(() => {
+                        resolve();
+                    }, 3000)
+                }
+            ));
+
+            // check paragraph
+            await this.page.evaluate(() => {
+                return this.checkP("No sub-breeds found!");
             });
 
             // check content only has one element

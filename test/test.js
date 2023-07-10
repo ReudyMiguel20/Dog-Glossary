@@ -36,6 +36,16 @@ class Test extends StageTest {
             return !element.innerText || element.innerText.trim().length === 0;
         };
 
+        // method to check if element with id has right attribute
+        this.elementHasAttribute = (id, attribute, value) => {
+            const element = document.body.querySelector(id);
+            if (!element) return true;
+            const attributeValue = element.getAttribute(attribute);
+            if (!attributeValue) return true;
+            // console.log(attributeValue);
+            return value && attributeValue !== value;
+        };
+
         // check content only has one element
         this.checkContentLen = () => {
             const content = document.body.querySelector(this.content);
@@ -57,6 +67,23 @@ class Test extends StageTest {
             const src = img.getAttribute("src");
             if (!src || !src.includes(srcStartsWith))
                 return wrong("The image does not have a source or the source does not start correctly.");
+        };
+
+        // check p
+        this.checkP = () => {
+            // check if p exists
+            const p = document.body.querySelector("p");
+            if (!p) return wrong("The paragraph is not displayed after clicking the button with wrong input.");
+
+            // check if parent is content
+            const pInContent = document.body.querySelector("#content > p");
+            if (!pInContent)
+                return wrong("The paragraph should be a child of the element with the selector of #content.");
+
+            // check if p has text
+            const pText = "Breed not found!";
+            if (p.innerText !== pText)
+                return wrong("The paragraph does not have the correct text.");
         };
 
         // CONSTANTS-->
@@ -95,7 +122,8 @@ class Test extends StageTest {
         if (this.elementExists(buttonRandom)) return wrong(this.missingIdMsg(buttonRandom));
 
         // check if its button
-        if (this.elementExists(buttonRandom, ["button"])) return wrong(this.wrongTagMsg(buttonRandom, "button"));
+        if (this.elementExists(buttonRandom, ["button"]))
+            return wrong(this.wrongTagMsg(buttonRandom, "button"));
 
         // check if it has text
         const buttonText = "Show Random Dog";
@@ -149,6 +177,89 @@ class Test extends StageTest {
             await this.page.evaluate(() => {
                 const srcStart = "https://images.dog.ceo/breeds";
                 return this.checkImg(srcStart);
+            });
+
+            return correct();
+        }),
+        this.page.execute(() => {
+            // test #4
+            // check if #input-breed exists
+            const inputBreed = "#input-breed";
+            if (this.elementExists(inputBreed)) return wrong(this.missingIdMsg(inputBreed));
+
+            // check if its input
+            if (this.elementExists(inputBreed, ["input"])) return wrong(this.wrongTagMsg(inputBreed, "input"));
+
+            // check if it has placeholder
+            const placeholder = "Enter a breed";
+            if (this.elementHasAttribute(inputBreed, "placeholder", placeholder))
+                return wrong(`The "${inputBreed}" input should have the placeholder attribute with the value of "${placeholder}".`);
+
+            // check if #button-show-breed exists
+            const buttonShowBreed = "#button-show-breed";
+            if (this.elementExists(buttonShowBreed)) return wrong(this.missingIdMsg(buttonShowBreed));
+
+            // check if its button
+            if (this.elementExists(buttonShowBreed, ["button"]))
+                return wrong(this.wrongTagMsg(buttonShowBreed, "button"));
+
+            // check if it has text
+            const buttonText = "Show Breed";
+            if (this.elementHasText(buttonShowBreed, buttonText))
+                return wrong(this.wrongTextMsg(buttonShowBreed, buttonText));
+
+            return correct();
+        }),
+        this.node.execute(async () => {
+            // test #5
+            // check button click and img after click
+            const buttonShowBreed = "#button-show-breed";
+            const button = await this.page.findBySelector(buttonShowBreed);
+            const input = await this.page.findBySelector("#input-breed");
+            const inputText = "Hound";
+            await input.inputText(inputText);
+
+            const isEventFired = button.waitForEvent('click', 1000);
+            await button.click();
+
+            if (await !isEventFired) return wrong(`Expected click event on button with ${buttonShowBreed} id!`);
+
+            await new Promise((resolve => {
+                setTimeout(() => {
+                    resolve();
+                }, 3000)
+            }));
+
+            // check content only has one element
+            await this.page.evaluate(() => {
+                return this.checkContentLen();
+            });
+
+            // check img
+            await this.page.evaluate(() => {
+                const srcStart = "https://images.dog.ceo/breeds/hound";
+                return this.checkImg(srcStart);
+            });
+
+            // check if it can handle wrong input
+            const wrongInput = " scooby";
+            await input.inputText(wrongInput);
+            await button.click();
+
+            await new Promise((resolve => {
+                setTimeout(() => {
+                    resolve();
+                }, 3000)
+            }));
+
+            // check paragraph
+            await  this.page.evaluate(() => {
+                return this.checkP();
+            });
+
+            // check content only has one element
+            await this.page.evaluate(() => {
+                return this.checkContentLen();
             });
 
             return correct();

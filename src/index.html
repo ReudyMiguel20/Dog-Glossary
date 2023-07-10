@@ -2,14 +2,19 @@
 <html lang="">
 <head>
     <meta charset="utf-8">
-    <title>Hello, World!</title>
+    <title>Dog Glossary</title>
 </head>
 <body>
     <h1>Dog Glossary</h1>
     <button id="button-random-dog">Show Random Dog</button>
-    
+
+    <label for="input-breed">
+        <input type="text" id="input-breed" placeholder="Enter a breed">
+        <button id="button-show-breed" onclick="getBreed()">Show Breed</button>
+    </label>
+
     <div id="content">
-        // Image will be added here by JavaScript code, method name is getDogImage().
+         <!--Image will be added here by JavaScript code, method name is getDogImage() and getBreedImage()-->
     </div>
 
     <script src="index.js"></script>

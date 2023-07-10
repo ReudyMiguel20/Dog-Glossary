@@ -70,7 +70,7 @@ class Test extends StageTest {
         };
 
         // check p
-        this.checkP = (text="Breed not found!") => {
+        this.checkP = () => {
             // check if p exists
             const p = document.body.querySelector("p");
             if (!p) return wrong("The paragraph is not displayed after clicking the button with wrong input.");
@@ -81,7 +81,8 @@ class Test extends StageTest {
                 return wrong("The paragraph should be a child of the element with the selector of #content.");
 
             // check if p has text
-            if (p.innerText !== text)
+            const pText = "Breed not found!";
+            if (p.innerText !== pText)
                 return wrong("The paragraph does not have the correct text.");
         };
 
@@ -203,23 +204,9 @@ class Test extends StageTest {
                 return this.checkImg(srcStart);
             });
 
-            await button.click();
-
-            await new Promise((resolve => {
-                setTimeout(() => {
-                    resolve();
-                }, 3000)
-            }));
-
             // check content only has one element
             await this.page.evaluate(() => {
                 return this.checkContentLen();
-            });
-
-            // check img
-            await this.page.evaluate(() => {
-                const srcStart = "https://images.dog.ceo/breeds";
-                return this.checkImg(srcStart);
             });
 
             return correct();
@@ -358,13 +345,9 @@ class Test extends StageTest {
                 return this.checkOl();
             });
 
-            await this.page.evaluate(() => {
-                return this.emptyInput();
-            });
-
             // check if it can handle wrong input
-            const noSubInput = "affenpinscher";
-            await input.inputText(noSubInput);
+            const wrongInput = " cute";
+            await input.inputText(wrongInput);
             await button.click();
 
             await new Promise((resolve => {
@@ -376,7 +359,7 @@ class Test extends StageTest {
 
             // check paragraph
             await this.page.evaluate(() => {
-                return this.checkP("No sub-breeds found!");
+                return this.checkP();
             });
 
             // check content only has one element

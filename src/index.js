@@ -47,6 +47,8 @@ async function getDogImage() {
         const img = document.createElement('img');
         img.src = data.message;
 
+        img.setAttribute('class', 'dog-image');
+
         return content.appendChild(img);
     } catch {
         console.log('error');
@@ -66,6 +68,8 @@ async function getBreedImage() {
     // create img element and set src to image url
     const img = document.createElement('img');
     img.src = data.message;
+
+    img.setAttribute('class', 'dog-image');
 
     // if breed not found, display error message, else display image
     if (data.status === 'error') {
@@ -156,9 +160,16 @@ async function getAllBreeds() {
                 listAllBreeds.appendChild(breed);
                 subBreedsList.appendChild(subBreed);
                 breed.appendChild(subBreedsList);
+
+
+
             }
         }
     }
+
+
+
+    listAllBreeds.setAttribute('id', 'list-all-breeds')
     // append ordered list to content div
     return content.appendChild(listAllBreeds);
 }

@@ -1,9 +1,10 @@
 <!--Variables for DOM elements-->
 const content = document.getElementById('content');
+const inputBreed = document.getElementById('input-breed');
 const buttonRandomDog = document.getElementById('button-random-dog');
 const buttonShowBreed = document.getElementById('button-show-breed');
 const buttonShowSubBreed = document.getElementById('button-show-sub-breed');
-const inputBreed = document.getElementById('input-breed');
+const buttonShowAll = document.getElementById('button-show-all');
 
 
 <!--Button Events-->
@@ -22,13 +23,18 @@ buttonShowSubBreed.addEventListener('click', function () {
     getSubBreed();
 });
 
+buttonShowAll.addEventListener('click', function () {
+    content.innerHTML = ''; // clear content
+    getAllBreeds();
+});
+
 
 <!--Functions-->
 function getInput() {
     return inputBreed.value;
 }
 
-// get dog image from api and append to content div
+// Get random dog image from api and append to content div
 async function getDogImage() {
     try {
         // 1. fetch() is a function that returns a promise
@@ -48,7 +54,7 @@ async function getDogImage() {
 
 }
 
-// get specific breed image from api and append to content div
+// Get specific breed image from api and append to content div
 async function getBreedImage() {
     // get breed from input and convert to lowercase
     let breed = getInput().toLowerCase();
@@ -72,6 +78,7 @@ async function getBreedImage() {
 }
 
 
+// This function gets the sub-breed of a specific breed and displays it in an ordered list format
 async function getSubBreed() {
     // get breed from input and convert to lowercase
     const subBreed = getInput().toLowerCase();
@@ -103,4 +110,55 @@ async function getSubBreed() {
         // append ordered list to content div
         return content.appendChild(listSubBreed);
     }
+}
+
+async function getAllBreeds() {
+    // fetch image from api and convert to json format (array) - returns an array of sub-breeds
+    const response = await fetch('https://dog.ceo/api/breeds/list/all');
+    const data = await response.json();
+
+    // create ordered list element
+    const listAllBreeds = document.createElement('ol');
+
+    // create array of breeds
+    const breeds = Object.keys(data.message);
+    const subBreeds = Object.values(data.message);
+
+    // loop through array and create list item (li) for each sub-breed and append to ordered list element (ol)
+    for (let i = 0; i < breeds.length; i++) {
+        if (subBreeds[i].length === 0) {
+            console.log(i + 'is empty');
+        } else {
+            console.log(i + 'contains something');
+        }
+
+
+        if (subBreeds[i].length === 0) {
+            // Create a new list item (li) for each breed and appends it to the ordered list (ol)
+            const breed = document.createElement('li');
+            breed.innerHTML = breeds[i]
+            listAllBreeds.appendChild(breed);
+
+        } else if (subBreeds[i].length > 0) {
+            // Create a new list item (li) for each breed and appends it to the ordered list (ol)
+            const breed = document.createElement('li');
+            breed.innerHTML = breeds[i]
+
+            // Creates a new unordered list (ul) for each breed and appends it to the list item (li)
+            for (let j = 0; j < subBreeds[i].length; j++) {
+                const subBreedsList = document.createElement('ul')
+                const subBreed = document.createElement('li');
+
+                // Creates a new list item (li) for each sub-breed and appends it to the unordered list (ul)
+                subBreed.innerHTML = subBreeds[i][j];
+
+                // Appends the unordered list (ul) to the list item (li)
+                listAllBreeds.appendChild(breed);
+                subBreedsList.appendChild(subBreed);
+                breed.appendChild(subBreedsList);
+            }
+        }
+    }
+    // append ordered list to content div
+    return content.appendChild(listAllBreeds);
 }
